@@ -78,7 +78,7 @@ app.put("/movies/:id", async (req, res) => {
     }
 
     res.status(200).send();
-})
+});
 
 app.delete("/movies/:id", async (req, res) => {
     const id = Number(req.params.id);
@@ -92,12 +92,34 @@ app.delete("/movies/:id", async (req, res) => {
 
         await prisma.movie.delete({ where: { id } })
     } catch (error) {
-        return res.status(500).send({message: "Não foi possivel remover o filme."})
+        return res.status(500).send({ message: "Não foi possivel remover o filme." })
     }
 
     res.status(200).send();
-})
+});
+
+app.get("/movies/:genreName", async (req, res) => {
+    try {
+        const moviesFilteredByGenreName = await prisma.movie.findMany({
+            include: {
+                genres: true,
+                languages: true
+            },
+            where: {
+                genres: {
+                    name: {
+                        equals: req.params.genreName,
+                        mode: "insensitive"
+                    }
+                }
+            }
+        });
+        res.status(200).send(moviesFilteredByGenreName);
+    } catch (error) {
+        res.status(500).send({ message: "Falha ao filtrar filmes" })
+    }
+});
 
 app.listen(port, () => {
-    console.log(`Servidor em execução na porta ${port}`)
-})
+    console.log(`Servidor em execução na porta ${port}`);
+});
